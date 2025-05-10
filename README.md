@@ -20,6 +20,5 @@
 This program allows you to play chess in your PC locally with a friend. 
 
 ### Pending work to do
-* Graphic part (using Tkinter or Pygame)
-* Castling
-* Review, test and fix bugs!
+* Pawn transformation
+* Movement count to tie
