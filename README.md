@@ -12,7 +12,7 @@
 
 <!-- ABOUT THE PROJECT -->
 ##### LANGUAGE: Python
-##### AUTHORS: Constructogamer & iikerm 
+##### AUTHORS: [javiiervm](https://github.com/javiiervm) & [iikerm](https://github.com/iikerm) 
 ##### RELEASE DATE: -
 <br />
 
