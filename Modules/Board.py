@@ -73,3 +73,15 @@ class Board:
         pieceToMove = origin.getPiece()
         self.squares[origin.getPosition().getX()][origin.getPosition().getY()].removePiece()
         self.squares[destiny.getPosition().getX()][destiny.getPosition().getY()].changePiece(f.createPiece(pieceToMove.getName(), pieceToMove.isWhite()))
+        # Verificar promoción de peón
+        self.checkPawnPromotion(self.squares[destiny.getPosition().getX()][destiny.getPosition().getY()])
+
+    def checkPawnPromotion(self, square):
+        piece = square.getPiece()
+        if piece and piece.getName() == "Pawn":
+            # Para peones blancos (llegan a fila 0)
+            if piece.isWhite() and square.getPosition().getX() == 0:
+                square.changePiece(f.createPiece("Queen", True))
+            # Para peones negros (llegan a fila 7)
+            elif not piece.isWhite() and square.getPosition().getX() == 7:
+                square.changePiece(f.createPiece("Queen", False))
