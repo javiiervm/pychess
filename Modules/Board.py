@@ -5,10 +5,16 @@ import PieceFactory as f
 class Board:
     __slots__ = 'squares'  # Limit attributes
 
-    def __init__(self):
+    def __init__(self, initialize=True):
         # Initialize 8x8 matrix of None
         self.squares = [[None for _ in range(8)] for _ in range(8)]
-        self.initializeBoard()
+        if initialize:
+            self.initializeBoard()
+        else:
+            # Si no se inicializa con el tablero estándar, crear casillas vacías
+            for row in range(8):
+                for column in range(8):
+                    self.squares[row][column] = s.Square(p.Position(row, column), None)
         
     def initializeBoard(self):
         for row in range(8):
@@ -85,3 +91,19 @@ class Board:
             # Para peones negros (llegan a fila 7)
             elif not piece.isWhite() and square.getPosition().getX() == 7:
                 square.changePiece(f.createPiece("Queen", False))
+                
+    def resetBoard(self):
+        """Limpia el tablero, eliminando todas las piezas"""
+        for row in range(8):
+            for column in range(8):
+                self.squares[row][column].removePiece()
+                
+    def placePiece(self, piece_type, position, is_white):
+        """Coloca una pieza específica en una posición del tablero
+        Args:
+            piece_type: Tipo de pieza a colocar (string)
+            position: Posición donde colocar la pieza
+            is_white: Booleano que indica si la pieza es blanca
+        """
+        piece = f.createPiece(piece_type, is_white)
+        self.squares[position.getX()][position.getY()].changePiece(piece)
