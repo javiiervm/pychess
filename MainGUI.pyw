@@ -4,6 +4,7 @@ from copy import deepcopy  # Para crear copias profundas de objetos
 import os
 import tkinter as tk
 from tkinter import messagebox
+import random  # Añadido para la generación aleatoria de posiciones
 
 modules_path = f"./Modules"
 sys.path.append(modules_path)
@@ -19,6 +20,9 @@ CHECK_BG = "#990000"  # Color rojo para situaciones de jaque
 global squareMatrix, chessGame, selected_square, current_turn
 selected_square = None      # Almacena la casilla seleccionada actualmente
 current_turn = True         # True para turno blanco, False para turno negro
+
+# Variable para el modo de juego
+game_mode = "Normal"  # Por defecto, modo normal
 
 class indexedButton:
     """Clase para manejar los botones del tablero con sus posiciones indexadas"""
@@ -165,7 +169,7 @@ class indexedButton:
                     if not hasValidMoves:
                         chessGame.setCheckMate(current_turn)
                         winner = "Black" if current_turn else "White"
-                        messagebox.showinfo("Game Over", f"{winner} wins by checkmate!")
+                        messagebox.showinfo("Game Over", f"{winner} king wins!")
                         boardWin.quit()
             
             selected_square = None
@@ -304,44 +308,6 @@ def updateBoardUI(i, j):
             else:
                 squareMatrix[row][column].bt_obj.configure(text="")
 
-def playerNameMenu():
-    """Crea y gestiona la ventana de entrada de nombres de jugadores"""
-    def getPlayerNames():
-        """Callback para procesar los nombres ingresados"""
-        global p1Name, p2Name
-        p1Name = entryPlayer1.get()
-        p2Name = entryPlayer2.get()
-        if not p1Name:
-            p1Name = "player1"
-        if not p2Name:
-            p2Name = "player2"
-        playerInputWin.destroy()
-    
-    # Creación de frames para organizar la interfaz
-    frameP1 = tk.Frame(playerInputWin, width=150, height=200)
-    frameP1.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
-    frameP2 = tk.Frame(playerInputWin, width=150, height=200)
-    frameP2.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
-    
-    # Campos de entrada para nombres
-    entryPlayer1 = tk.Entry(frameP1, width=20)
-    entryPlayer1.grid(row=1, column=0, sticky=tk.W)
-    entryPlayer2 = tk.Entry(frameP2, width=20)
-    entryPlayer2.grid(row=1, column=0, sticky=tk.W)
-
-    # Etiquetas para los campos
-    labelPlayer1 = tk.Label(frameP1, text="Enter name for white:")
-    labelPlayer1.grid(row=0, column=0, sticky=tk.W)
-    labelPlayer2 = tk.Label(frameP2, text="Enter name for black:")
-    labelPlayer2.grid(row=0, column=0, sticky=tk.W)
-
-    # Botón de envío
-    submitButton = tk.Button(playerInputWin, text="Submit", command=getPlayerNames)
-    submitButton.place(relx=0.5, rely=0.8)
-
-    # Vincula la tecla Enter para enviar el formulario
-    playerInputWin.bind("<Return>", lambda e: getPlayerNames())
-
 # Función para limpiar la consola de manera compatible con diferentes sistemas operativos
 def clear_console():
     """Limpia la consola de manera compatible con diferentes sistemas operativos"""
@@ -350,26 +316,122 @@ def clear_console():
     else:  # Unix/Linux/Mac
         os.system('clear')
 
+# Función para crear un tablero con piezas en posiciones aleatorias (MixMode)
+def create_mix_mode_board():
+    """Crea un tablero con piezas en posiciones aleatorias para el modo MixMode"""
+    board = brd.Board(initialize=False)  # Crear tablero vacío
+    
+    # Definir las piezas necesarias para cada color
+    piece_types = ["Rook", "Knight", "Bishop", "Queen", "King", "Bishop", "Knight", "Rook"]
+    pawns = ["Pawn"] * 8
+    
+    # Crear listas de posiciones disponibles
+    white_positions = []
+    black_positions = []
+    
+    # Llenar las posiciones disponibles (4 filas para cada color)
+    for i in range(4, 8):  # Filas 4-7 para blancas (abajo)
+        for j in range(8):
+            white_positions.append(pos.Position(i, j))
+    
+    for i in range(4):  # Filas 0-3 para negras (arriba)
+        for j in range(8):
+            black_positions.append(pos.Position(i, j))
+    
+    # Mezclar las posiciones
+    random.shuffle(white_positions)
+    random.shuffle(black_positions)
+    
+    # Función para colocar piezas y verificar que el rey no esté en jaque
+    def place_pieces_safely():
+        # Reiniciar el tablero
+        board.resetBoard()
+        
+        # Mezclar las posiciones nuevamente
+        random.shuffle(white_positions)
+        random.shuffle(black_positions)
+        
+        # Colocar piezas blancas
+        for i, piece_type in enumerate(piece_types + pawns):
+            board.placePiece(piece_type, white_positions[i], True)
+        
+        # Colocar piezas negras
+        for i, piece_type in enumerate(piece_types + pawns):
+            board.placePiece(piece_type, black_positions[i], False)
+        
+        # Verificar que ningún rey esté en jaque
+        temp_game = game.ChessGame(board, "White", "Black")
+        white_check, _, _ = temp_game.checkForCheck(True)
+        black_check, _, _ = temp_game.checkForCheck(False)
+        
+        # Si algún rey está en jaque, retornar False para intentar de nuevo
+        return not (white_check or black_check)
+    
+    # Intentar colocar las piezas hasta que ningún rey esté en jaque
+    while not place_pieces_safely():
+        pass
+    
+    return board
+
+# Función para mostrar la ventana de selección de modo de juego
+def game_mode_selection():
+    """Muestra una ventana para seleccionar el modo de juego"""
+    global game_mode
+    
+    def select_normal_mode():
+        global game_mode
+        game_mode = "Normal"
+        mode_selection_win.destroy()
+    
+    def select_mix_mode():
+        global game_mode
+        game_mode = "MixMode"
+        mode_selection_win.destroy()
+    
+    # Crear ventana de selección de modo
+    mode_selection_win = tk.Tk()
+    mode_selection_win.title("Selección de Modo de Juego")
+    mode_selection_win.geometry("400x200")
+    
+    # Etiqueta de instrucción
+    label = tk.Label(mode_selection_win, text="Selecciona el modo de juego:", font=("Arial", 14))
+    label.pack(pady=20)
+    
+    # Frame para los botones
+    button_frame = tk.Frame(mode_selection_win)
+    button_frame.pack(pady=10)
+    
+    # Botones de selección
+    normal_button = tk.Button(button_frame, text="Normal", command=select_normal_mode, 
+                             width=10, height=2, font=("Arial", 12))
+    normal_button.grid(row=0, column=0, padx=20)
+    
+    mix_button = tk.Button(button_frame, text="MixMode", command=select_mix_mode, 
+                          width=10, height=2, font=("Arial", 12))
+    mix_button.grid(row=0, column=1, padx=20)
+    
+    # Centrar la ventana
+    mode_selection_win.update_idletasks()
+    width = mode_selection_win.winfo_width()
+    height = mode_selection_win.winfo_height()
+    x = (mode_selection_win.winfo_screenwidth() // 2) - (width // 2)
+    y = (mode_selection_win.winfo_screenheight() // 2) - (height // 2)
+    mode_selection_win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+    
+    mode_selection_win.mainloop()
+
 # Bloque principal del programa
 if __name__ == '__main__':
-    # Limpia la consola e imprime el banner
-    #clear_console()
-    #print("======================== [PYCHESS - By @Constructogamer and @iikerm] ========================")
+    # Mostrar ventana de selección de modo de juego
+    game_mode_selection()
     
-    # Inicialización de variables para nombres de jugadores
-    p1Name = ""
-    p2Name = ""
-
-    # Creación y configuración de la ventana de nombres
-    #playerInputWin = tk.Tk()
-    #playerInputWin.title("Choose player")
-    #playerInputWin.geometry("320x420")
-    #playerNameMenu()
-    #playerInputWin.mainloop()
+    # Inicialización de variables para nombres de jugadores - Ahora simplificados
+    p1Name = "White"
+    p2Name = "Black"
     
     # Creación y configuración de la ventana del tablero
     boardWin = tk.Tk()
-    boardWin.title("PyChess")
+    boardWin.title("PyChess - " + game_mode)
     squareMatrix = []
     
     # Creación del tablero de ajedrez
@@ -397,7 +459,14 @@ if __name__ == '__main__':
     # Configura la ventana como no redimensionable
     boardWin.resizable(False, False)
 
-    # Inicializa el juego con los jugadores
-    chessGame = game.ChessGame(brd.Board(), plr.Player(p1Name, True), plr.Player(p2Name, False))
+    # Inicializa el juego con los jugadores según el modo seleccionado
+    if game_mode == "MixMode":
+        # Crear tablero con piezas en posiciones aleatorias
+        mix_board = create_mix_mode_board()
+        chessGame = game.ChessGame(mix_board, plr.Player(p1Name, True), plr.Player(p2Name, False))
+    else:
+        # Modo normal con tablero estándar
+        chessGame = game.ChessGame(brd.Board(), plr.Player(p1Name, True), plr.Player(p2Name, False))
+    
     updateBoardUI(0, 0)  # Actualiza la interfaz inicial
     boardWin.mainloop()  # Inicia el bucle principal de la interfaz
