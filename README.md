@@ -7,7 +7,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <h1 align="center">Pychess</h1>
+  <h1 align="center">♟️ Pychess ♟️</h1>
 </div>
 
 <!-- ABOUT THE PROJECT -->
