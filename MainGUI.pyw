@@ -321,10 +321,6 @@ def create_mix_mode_board():
     """Crea un tablero con piezas en posiciones aleatorias para el modo MixMode"""
     board = brd.Board(initialize=False)  # Crear tablero vacío
     
-    # Definir las piezas necesarias para cada color
-    piece_types = ["Rook", "Knight", "Bishop", "Queen", "King", "Bishop", "Knight", "Rook"]
-    pawns = ["Pawn"] * 8
-    
     # Crear listas de posiciones disponibles
     white_positions = []
     black_positions = []
@@ -338,26 +334,123 @@ def create_mix_mode_board():
         for j in range(8):
             black_positions.append(pos.Position(i, j))
     
-    # Mezclar las posiciones
-    random.shuffle(white_positions)
-    random.shuffle(black_positions)
+    # Función para verificar si una posición corresponde a una casilla blanca
+    def is_white_square(position):
+        # En un tablero de ajedrez, una casilla es blanca si la suma de sus coordenadas es par
+        return (position.getX() + position.getY()) % 2 == 0
     
     # Función para colocar piezas y verificar que el rey no esté en jaque
     def place_pieces_safely():
         # Reiniciar el tablero
         board.resetBoard()
         
-        # Mezclar las posiciones nuevamente
-        random.shuffle(white_positions)
-        random.shuffle(black_positions)
+        # Crear copias de las posiciones para no modificar las originales
+        white_pos_copy = white_positions.copy()
+        black_pos_copy = black_positions.copy()
         
-        # Colocar piezas blancas
-        for i, piece_type in enumerate(piece_types + pawns):
-            board.placePiece(piece_type, white_positions[i], True)
+        # Mezclar las posiciones
+        random.shuffle(white_pos_copy)
+        random.shuffle(black_pos_copy)
         
-        # Colocar piezas negras
-        for i, piece_type in enumerate(piece_types + pawns):
-            board.placePiece(piece_type, black_positions[i], False)
+        # Separar posiciones por color de casilla para las piezas blancas
+        white_player_white_squares = [pos for pos in white_pos_copy if is_white_square(pos)]
+        white_player_black_squares = [pos for pos in white_pos_copy if not is_white_square(pos)]
+        
+        # Separar posiciones por color de casilla para las piezas negras
+        black_player_white_squares = [pos for pos in black_pos_copy if is_white_square(pos)]
+        black_player_black_squares = [pos for pos in black_pos_copy if not is_white_square(pos)]
+        
+        # Verificar que hay suficientes casillas de cada color
+        if (len(white_player_white_squares) < 2 or len(white_player_black_squares) < 2 or
+            len(black_player_white_squares) < 2 or len(black_player_black_squares) < 2):
+            return False
+        
+        # Seleccionar posiciones para los alfiles (uno en casilla blanca, otro en casilla negra)
+        white_bishop1_pos = white_player_white_squares.pop(0)
+        white_bishop2_pos = white_player_black_squares.pop(0)
+        black_bishop1_pos = black_player_white_squares.pop(0)
+        black_bishop2_pos = black_player_black_squares.pop(0)
+        
+        # Seleccionar posiciones para los caballos (uno en casilla blanca, otro en casilla negra)
+        white_knight1_pos = white_player_white_squares.pop(0)
+        white_knight2_pos = white_player_black_squares.pop(0)
+        black_knight1_pos = black_player_white_squares.pop(0)
+        black_knight2_pos = black_player_black_squares.pop(0)
+        
+        # Combinar las posiciones restantes para las demás piezas
+        remaining_white_positions = white_player_white_squares + white_player_black_squares
+        remaining_black_positions = black_player_white_squares + black_player_black_squares
+        
+        # Mezclar las posiciones restantes
+        random.shuffle(remaining_white_positions)
+        random.shuffle(remaining_black_positions)
+        
+        # Verificar que hay suficientes posiciones restantes
+        if len(remaining_white_positions) < 12 or len(remaining_black_positions) < 12:
+            return False
+        
+        # Colocar alfiles blancos en casillas de distinto color
+        board.placePiece("Bishop", white_bishop1_pos, True)
+        board.placePiece("Bishop", white_bishop2_pos, True)
+        
+        # Colocar caballos blancos en casillas de distinto color
+        board.placePiece("Knight", white_knight1_pos, True)
+        board.placePiece("Knight", white_knight2_pos, True)
+        
+        # Colocar alfiles negros en casillas de distinto color
+        board.placePiece("Bishop", black_bishop1_pos, False)
+        board.placePiece("Bishop", black_bishop2_pos, False)
+        
+        # Colocar caballos negros en casillas de distinto color
+        board.placePiece("Knight", black_knight1_pos, False)
+        board.placePiece("Knight", black_knight2_pos, False)
+        
+        # Definir las piezas restantes a colocar
+        white_remaining_pieces = ["Rook", "Queen", "King", "Rook"] + ["Pawn"] * 8
+        black_remaining_pieces = ["Rook", "Queen", "King", "Rook"] + ["Pawn"] * 8
+        
+        # Asegurarse de que hay suficientes posiciones para todas las piezas
+        if len(remaining_white_positions) < len(white_remaining_pieces) or len(remaining_black_positions) < len(black_remaining_pieces):
+            return False
+        
+        # Colocar las demás piezas blancas (excepto alfiles y caballos)
+        for i, piece_type in enumerate(white_remaining_pieces):
+            board.placePiece(piece_type, remaining_white_positions[i], True)
+        
+        # Colocar las demás piezas negras (excepto alfiles y caballos)
+        for i, piece_type in enumerate(black_remaining_pieces):
+            board.placePiece(piece_type, remaining_black_positions[i], False)
+        
+        # Verificar que todas las piezas están colocadas
+        white_pieces = board.getPlayerSquares(True)
+        black_pieces = board.getPlayerSquares(False)
+        
+        # Contar cada tipo de pieza
+        white_piece_counts = {}
+        black_piece_counts = {}
+        
+        for square in white_pieces:
+            piece_name = square.getPiece().getName()
+            white_piece_counts[piece_name] = white_piece_counts.get(piece_name, 0) + 1
+        
+        for square in black_pieces:
+            piece_name = square.getPiece().getName()
+            black_piece_counts[piece_name] = black_piece_counts.get(piece_name, 0) + 1
+        
+        # Verificar que están todas las piezas necesarias
+        expected_counts = {
+            "Pawn": 8,
+            "Rook": 2,
+            "Knight": 2,
+            "Bishop": 2,
+            "Queen": 1,
+            "King": 1
+        }
+        
+        # Verificar que cada tipo de pieza tiene la cantidad correcta
+        for piece_name, count in expected_counts.items():
+            if white_piece_counts.get(piece_name, 0) != count or black_piece_counts.get(piece_name, 0) != count:
+                return False
         
         # Verificar que ningún rey esté en jaque
         temp_game = game.ChessGame(board, "White", "Black")
@@ -367,11 +460,29 @@ def create_mix_mode_board():
         # Si algún rey está en jaque, retornar False para intentar de nuevo
         return not (white_check or black_check)
     
-    # Intentar colocar las piezas hasta que ningún rey esté en jaque
-    while not place_pieces_safely():
-        pass
+    # Intentar colocar las piezas hasta que ningún rey esté en jaque y todas las piezas estén presentes
+    max_attempts = 100  # Límite de intentos para evitar bucles infinitos
+    attempts = 0
     
-    return board
+    while attempts < max_attempts:
+        if place_pieces_safely():
+            # Verificación final de que todas las piezas están presentes
+            white_pieces = board.getPlayerSquares(True)
+            black_pieces = board.getPlayerSquares(False)
+            
+            if len(white_pieces) == 16 and len(black_pieces) == 16:
+                # Verificar que hay exactamente 8 peones de cada color
+                white_pawns = sum(1 for square in white_pieces if square.getPiece().getName() == "Pawn")
+                black_pawns = sum(1 for square in black_pieces if square.getPiece().getName() == "Pawn")
+                
+                if white_pawns == 8 and black_pawns == 8:
+                    return board
+        
+        attempts += 1
+    
+    # Si después de muchos intentos no se logra, crear un tablero estándar
+    print("No se pudo crear un tablero aleatorio válido después de varios intentos. Usando tablero estándar.")
+    return brd.Board()
 
 # Función para mostrar la ventana de selección de modo de juego
 def game_mode_selection():
