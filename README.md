@@ -21,7 +21,7 @@
 
 ## Features
 
-☑️ Compatible with Windows, Linux, Android (using Pydroid3 to run it), and macOS.
+☑️ Compatible with Windows, Linux, Android (tested using Pydroid3), and macOS.
 
 ☑️ Touchscreen support.
 
@@ -33,6 +33,10 @@
 
 ## Requirements
 To be able to run this program properly, you need to have **Python** installed (the Tkinter library is included with the installation). You can download it in your device through [Python's official website](https://www.python.org/). *The program has been tested with Python 3.12*
+> [!IMPORTANT]
+> If you want to run this program **on Android**, the best way to do so is by installing [Pydroid3](https://play.google.com/store/apps/details?id=ru.iiec.pydroid3&pcampaignid=web_share), a Python emulator to write and run Python codes. To make it work, just download the .zip source code, unzip the file (you can use an app like [RAR](https://play.google.com/store/apps/details?id=com.rarlab.rar&pcampaignid=web_share) for that) and then open MainGUI.pyw in the editor and touch the "Run" button.
+>
+> Other great option is to use [Termux](https://play.google.com/store/apps/details?id=com.termux&pcampaignid=web_share), a terminal for Android, you can install Python there or even install a Linux distro as an isolated environment to run code.
 
 ## Workflow
 This program allows you to play chess on your PC locally with a friend, with a round system so you move your pieces in turns, following the classic chess workflow.
