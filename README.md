@@ -32,7 +32,7 @@
 ☑️ When a Pawn reaches the end of the board, it turns into Queen automatically.
 
 ## Requirements
-To be able to run this program properly, you need to have **Python** installed (the Tkinter library is included with the installation). You can download it in your device through [Python's official website](https://www.python.org/). 
+To be able to run this program properly, you need to have **Python** installed (the Tkinter library is included with the installation). You can download it in your device through [Python's official website](https://www.python.org/). *The program has been tested with Python 3.12*
 
 ## Workflow
 This program allows you to play chess on your PC locally with a friend, with a round system so you move your pieces in turns, following the classic chess workflow.
